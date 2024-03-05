@@ -1,0 +1,43 @@
+{
+  "name": "Proqure",
+  "version": "1.0.0",
+  "description": "Test Server for SHEMA",
+  "proxy": "http://localhost:3000/1 ",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server",
+    "dev": "nodemon server"
+  },
+  "author": "Bereket Lemma",
+  "license": "ISC",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@google-cloud/speech": "^6.0.2",
+    "axios": "^1.6.4",
+    "bcrypt": "^5.1.1",
+    "child_process": "^1.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "express-fileupload": "^1.4.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "js-sha512": "^0.8.0",
+    "jsonwebtoken": "^9.0.1",
+    "mic": "^2.1.2",
+    "moment": "^2.29.4",
+    "mongoose": "^6.5.3",
+    "multer": "^1.4.5-lts.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.6.0",
+    "node-cron": "^3.0.2",
+    "openai": "^3.2.1",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.1",
+    "request": "^2.88.2",
+    "socket.io": "^4.7.2",
+    "validator": "^13.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  }
+}
