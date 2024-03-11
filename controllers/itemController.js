@@ -1,221 +1,56 @@
-const Item = require('../models/Item');
-const mysql = require('../models/mysqlConnect');
-const { isEmpty } = require('../utils');
 
-exports.addwishitem = (req, res) => {
-    console.log("addwishitem", req.body);
-    let { user_id, product_id } = req.body;
-    const findQuery = {
-        user_id: user_id,
-        product_id: product_id,
-    }
-    mysql.select('tbl_wish', findQuery).then(([fresult]) => {
-        console.log("====result:", isEmpty(fresult));
-        if (!isEmpty(fresult)) {
-            return res.json({
-                status: 1,
-                message: "Item already added",
-            })
+const validator = require('validator');
+const bcrypt = require('bcrypt');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+
+let response = {
+    "storename": "Pet Paradise",
+    "description": "We provide the best care for your pets while you're away. Our team is dedicated to ensuring your pets are happy and healthy.",
+    "products": [
+        {
+            "name": "Dog Food",
+            "price": 15
+        },
+        {
+            "name": "Cat Food",
+            "price": 10
         }
-        let insertQuery = mysql.insertManyQuery('tbl_wish', [findQuery]);
-        let selectQuery = `SELECT w.id, w.user_id, w.product_id,c.name as cat_name, c.id as cat_id, p.name, p.price, p.image, p.description, p.details, p.vendor_id, p.created_at FROM tbl_wish as w INNER JOIN tbl_products as p ON w.product_id = p.id INNER JOIN tbl_categories as c ON c.id=p.cat_id WHERE w.user_id='${user_id}';`;
-        mysql.query(`${insertQuery}${selectQuery}`).then(result => {
-            if (!isEmpty(result)) {
-                return res.json({
-                    status: 0,
-                    message: "Successfully added",
-                    result,
-                })
-            }
-
-        })
-            .catch(err => {
-                console.log('err1 :>> ', err);
-                return res.json({
-                    status: 1,
-                    message: "Please try again later",
-                })
-            })
-
-    })
-        .catch(err => {
-            console.log('err2 :>> ', err);
-            return res.json({
-                status: 1,
-                message: "Please try again later",
-            })
-        })
-}
-
-exports.removewishitem = (req, res) => {
-    console.log('removewishitem', req.body);
-    let { id: id, user_id: user_id, product_id: product_id } = req.body;
-    let deleteQuery = mysql.deleteManyQuery('tbl_wish', { user_id: user_id, product_id: product_id });
-    console.log("deleteQuery", deleteQuery);
-    let selectQuery = `SELECT w.id, w.user_id, w.product_id,c.name as cat_name, c.id as cat_id, p.name, p.price, p.image, p.description, p.details, p.vendor_id, p.created_at FROM tbl_wish as w INNER JOIN tbl_products as p ON w.product_id = p.id INNER JOIN tbl_categories as c ON c.id=p.cat_id WHERE w.user_id='${user_id}';`;
-    mysql.query(`${deleteQuery}${selectQuery}`).then((result) => {
-        return res.json({
-            status: 0,
-            result: result,
-            message: "Succefully removed"
-        })
-
-    }).catch(err => {
-        console.log("removewishitem", err)
-        return res.json({
-            status: 1,
-            message: "Please try again later",
-        })
-    })
-
-}
-
-
-exports.addtobagitem = (req, res) => {
-    console.log("addcartitem", req.body);
-    let { user_id, product_id, quantity, size } = req.body;
-    const findQuery = {
-        user_id: user_id,
-        product_id: product_id,
-    }
-    const temp = {
-        user_id: user_id,
-        product_id: product_id,
-        quantity: quantity,
-        size: size,
-    }
-    mysql.select('tbl_cart', findQuery).then(([fresult]) => {
-        console.log("====result:", isEmpty(fresult));
-        if (!isEmpty(fresult)) {
-            return res.json({
-                status: 1,
-                message: "Item already added",
-            })
+    ],
+    "Reviews": [
+        {
+            "id": 1,
+            "username": "petlover123",
+            "comment": "Great service! My dog loves it here.",
+            "rating": 5
+        },
+        {
+            "id": 2,
+            "username": "catlover456",
+            "comment": "My cat is always happy after visiting Pet Paradise.",
+            "rating": 4
         }
-        let insertQuery = mysql.insertManyQuery('tbl_cart', [temp]);
-        let selectQuery = `SELECT ct.id, ct.user_id, ct.product_id, ct.quantity, ct.size, c.name as cat_name, c.id as cat_id, p.name, p.price, p.image, p.description, p.details, p.vendor_id, p.created_at FROM tbl_cart as ct INNER JOIN tbl_products as p ON ct.product_id = p.id INNER JOIN tbl_categories as c ON c.id=p.cat_id WHERE ct.user_id='${user_id}';`;
-        mysql.query(`${insertQuery}${selectQuery}`).then(result => {
-            if (!isEmpty(result)) {
-                return res.json({
-                    status: 0,
-                    message: "Successfully added",
-                    result,
-                })
-            }
+    ],
+    "images": [
+        "https://example.com/image1.jpg",
+        "https://example.com/image2.jpg"
+    ],
+    "profile": {
+        "profile_image": "https://example.com/profile.jpg",
+        "profile_slug": "petparadise",
 
-        })
-            .catch(err => {
-                console.log('err3 :>> ', err);
-                return res.json({
-                    status: 1,
-                    message: "Please try again later",
-                })
-            })
-
-    })
-        .catch(err => {
-            console.log('err4 :>> ', err);
-            return res.json({
-                status: 1,
-                message: "Please try again later",
-            })
-        })
-}
-
-exports.removecartitem = (req, res) => {
-    console.log('removewishitem', req.body);
-    let { id: id, user_id: user_id, product_id: product_id } = req.body;
-    let deleteQuery = mysql.deleteManyQuery('tbl_cart', { user_id: user_id, product_id: product_id });
-    console.log("deleteQuery", deleteQuery);
-    let selectQuery = `SELECT ct.id, ct.user_id, ct.product_id, ct.size, c.name as cat_name, c.id as cat_id, p.name, p.price, p.image, p.description, p.details, p.vendor_id, ct.quantity, p.created_at FROM tbl_cart as ct INNER JOIN tbl_products as p ON ct.product_id = p.id INNER JOIN tbl_categories as c ON c.id=p.cat_id WHERE ct.user_id='${user_id}';`;
-    mysql.query(`${deleteQuery}${selectQuery}`).then((result) => {
-        return res.json({
-            status: 0,
-            result: result,
-            message: "Succefully removed"
-        })
-
-    }).catch(err => {
-        console.log("removecartitem", err)
-        return res.json({
-            status: 1,
-            message: "Please try again later",
-        })
-    })
-}
-
-
-exports.quantitychange = (req, res) => {
-    console.log("quantitychange", req.body);
-    let { id, user_id, product_id, quantity } = req.body;
-    // let updateQuery = mysql.updateQuery('tbl_cart', { id: id }, { quantity: quantity });
-    let updateQuery = `UPDATE tbl_cart SET quantity='${quantity}' WHERE id='${id}';`;
-    console.log("update query", updateQuery);
-    let selectQuery = `SELECT ct.id, ct.user_id, ct.product_id, ct.size, c.name as cat_name, c.id as cat_id, p.name, p.price, p.image, p.description, p.details, p.vendor_id, ct.quantity, p.created_at FROM tbl_cart as ct INNER JOIN tbl_products as p ON ct.product_id = p.id INNER JOIN tbl_categories as c ON c.id=p.cat_id WHERE ct.user_id='${user_id}';`;
-    mysql.query(`${updateQuery}${selectQuery}`).then(result => {
-        return res.json({
-            status: 0,
-            result: result,
-            message: "Successfully updated",
-        })
-    }).catch(error => {
-        console.log("error", error);
-        return res.json({
-            status: 1,
-            message: "Please try again later",
-        })
-    })
-}
-
-exports.addcartitem = (req, res) => {
-    console.log("addcartitem", req.body);
-    let { user_id, product_id, quantity, size } = req.body;
-    const findQuery = {
-        user_id: user_id,
-        product_id: product_id,
+    },
+    "social_media": {
+        "facebook": "https://www.facebook.com/petparadise",
+        "instagram": "https://www.instagram.com/petparadise"
     }
-    const temp = {
-        user_id: user_id,
-        product_id: product_id,
-        quantity: quantity,
-        size: size,
-    }
-    mysql.select('tbl_cart', findQuery).then(([fresult]) => {
-        console.log("====result:", isEmpty(fresult));
-        let tempQuery = '';
-        let message = '';
-        if (isEmpty(fresult)) {
-            tempQuery = mysql.insertManyQuery('tbl_cart', [temp]);
-            message = "Successfully added";
-        }else{
-            tempQuery = `UPDATE tbl_cart SET quantity='${quantity}', size='${size}' WHERE user_id='${user_id}' and product_id='${product_id}';`;
-            message = "Successfully updated";
-        }
-        let selectQuery = `SELECT ct.id, ct.user_id, ct.product_id, ct.size, c.name as cat_name, c.id as cat_id, p.name, p.price, p.image, p.description, p.details, p.vendor_id, ct.quantity, p.created_at FROM tbl_cart as ct INNER JOIN tbl_products as p ON ct.product_id = p.id INNER JOIN tbl_categories as c ON c.id=p.cat_id WHERE ct.user_id='${user_id}'`;
-        mysql.query(`${tempQuery}${selectQuery}`).then(result => {
-            if (!isEmpty(result)) {
-                return res.json({
-                    status: 0,
-                    message: message,
-                    result,
-                })
-            }
-
-        })
-            .catch(err => {
-                console.log('err3 :>> ', err);
-                return res.json({
-                    status: 1,
-                    message: "Please try again later",
-                })
-            })
-
+}
+exports.getStore = (req, res) => {
+    console.log("getStore:", req.body);
+    return res.json({
+        status: 0,
+        response
     })
-        .catch(err => {
-            console.log('err4 :>> ', err);
-            return res.json({
-                status: 1,
-                message: "Please try again later",
-            })
-        })
+
 }
